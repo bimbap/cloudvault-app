@@ -21,32 +21,32 @@
     </mxCell>
 
     <!-- AWS CLOUD CONTAINER -->
-    <mxCell id="aws_cloud" value="AWS CLOUD (us-east-1)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,1],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#545B64;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#545B64;dashed=0;" vertex="1" parent="1">
+    <mxCell id="aws_cloud" value="AWS CLOUD" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,1],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#545B64;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#545B64;dashed=0;" vertex="1" parent="1">
       <mxGeometry x="230" y="70" width="760" height="490" as="geometry" />
     </mxCell>
 
     <!-- VPC CONTAINER -->
-    <mxCell id="region_vpc" value="cv-vpc (10.38.0.0/16)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;strokeColor=#00A1C9;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#0073BB;dashed=1;" vertex="1" parent="1">
+    <mxCell id="region_vpc" value="Virginia (us-east-1) | VPC (10.38.0.0/16)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;strokeColor=#00A1C9;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#0073BB;dashed=1;" vertex="1" parent="1">
       <mxGeometry x="260" y="110" width="700" height="245" as="geometry" />
     </mxCell>
 
     <!-- PUBLIC SUBNET -->
-    <mxCell id="pub_subnet" value="cv-public-subnet-1 (10.38.1.0/24)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=none;fillColor=#EEF3E2;verticalAlign=top;align=left;spacingLeft=30;fontColor=#3F8624;dashed=0;" vertex="1" parent="1">
+    <mxCell id="pub_subnet" value="us-east-1a | Public Subnet (10.38.1.0/24)" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=none;fillColor=#EEF3E2;verticalAlign=top;align=left;spacingLeft=30;fontColor=#3F8624;dashed=0;" vertex="1" parent="1">
       <mxGeometry x="290" y="155" width="640" height="185" as="geometry" />
     </mxCell>
 
     <!-- IGW -->
-    <mxCell id="igw" value="cv-igw" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.internet_gateway;" vertex="1" parent="1">
+    <mxCell id="igw" value="Internet Gateway" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.internet_gateway;" vertex="1" parent="1">
       <mxGeometry x="340" y="215" width="55" height="55" as="geometry" />
     </mxCell>
 
     <!-- EC2 INSTANCE -->
-    <mxCell id="ec2" value="cv-ec2-web&#xa;Node.js :3000" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;spacingBottom=6;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;" vertex="1" parent="1">
+    <mxCell id="ec2" value="Instance&#xa;Node.js :3000" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;spacingBottom=6;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;" vertex="1" parent="1">
       <mxGeometry x="540" y="215" width="55" height="55" as="geometry" />
     </mxCell>
 
     <!-- VPC GATEWAY ENDPOINT -->
-    <mxCell id="vpce" value="cv-s3-endpoint" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;spacingBottom=6;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.endpoints;" vertex="1" parent="1">
+    <mxCell id="vpce" value="Gateway Endpoint&#xa;S3" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;spacingBottom=6;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.endpoints;" vertex="1" parent="1">
       <mxGeometry x="790" y="215" width="55" height="55" as="geometry" />
     </mxCell>
 
@@ -61,7 +61,7 @@
     </mxCell>
 
     <!-- S3 BUCKET -->
-    <mxCell id="s3" value="cv-storage" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=1;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="1">
+    <mxCell id="s3" value="S3" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=1;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="1">
       <mxGeometry x="790" y="415" width="55" height="55" as="geometry" />
     </mxCell>
 

@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex">
 
-  <!-- Sidebar Navigasi -->
+  <!-- Sidebar Navigation -->
   <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6">
     <div>
       <div class="flex items-center gap-3 mb-8">
@@ -44,7 +44,7 @@
     </div>
   </aside>
 
-  <!-- Konten Utama -->
+  <!-- Main Content -->
   <main class="flex-1 p-8 overflow-y-auto">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
       <div>
@@ -56,7 +56,7 @@
       </button>
     </div>
 
-    <!-- Panel Status Infrastruktur EC2 & S3 -->
+    <!-- EC2 & S3 Infrastructure Status Panel -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
         <h3 class="font-semibold text-base text-indigo-400">🖧 Status Koneksi S3 & VPC Endpoint</h3>
@@ -103,7 +103,7 @@
       </div>
     </div>
 
-    <!-- Timeline Audit Log dari S3 Metadata -->
+    <!-- Timeline Audit Log from S3 Metadata -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
       <h3 class="font-semibold text-base mb-1">📜 Riwayat Aktivitas Unggahan (Stateless Audit Trail)</h3>
       <p class="text-xs text-slate-400 mb-6">Disusun otomatis dari timestamp LastModified dan S3 User-Defined Metadata tanpa database lokal.</p>

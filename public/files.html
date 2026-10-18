@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex">
 
-  <!-- Sidebar Navigasi -->
+  <!-- Sidebar Navigation -->
   <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6">
     <div>
       <div class="flex items-center gap-3 mb-8">
@@ -44,18 +44,18 @@
     </div>
   </aside>
 
-  <!-- Konten Utama -->
+  <!-- Main Content -->
   <main class="flex-1 p-8 overflow-y-auto">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div>
         <h2 class="text-2xl font-bold">File Explorer & Pre-signed Link Generator</h2>
-        <p class="text-slate-400 text-sm">Kelola objek S3 dan buat tautan unduh sementara tanpa membuka akses publik bucket.</p>
+        <p class="text-slate-400 text-sm">Manage S3 objects and create temporary download links without opening bucket public access.</p>
       </div>
 
-      <!-- Filter Prefix & Durasi Link -->
+      <!-- Filter Prefix & Link Duration -->
       <div class="flex items-center gap-3">
         <select id="filterCategory" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-          <option value="all">Semua Prefix Folder</option>
+          <option value="all">Semua Prefix Folders</option>
           <option value="akademik">akademik/</option>
           <option value="media">media/</option>
           <option value="arsip">arsip/</option>
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <!-- Box Hasil Pre-signed URL -->
+    <!-- Pre-signed URL Result Box -->
     <div id="presignBox" class="hidden mb-6 p-4 rounded-2xl bg-indigo-950/50 border border-indigo-700/60 text-sm">
       <div class="flex items-center justify-between gap-4">
         <div class="overflow-hidden">
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <!-- Tabel File -->
+    <!-- File Table -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">

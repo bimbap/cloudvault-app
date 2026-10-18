@@ -88,13 +88,7 @@ Create a `.env` file in the root directory by copying `.env.example`:
 cp .env.example .env
 ```
 
-Set the following variables inside `.env`:
-
-```env
-PORT=3000
-AWS_REGION=us-east-1
-BUCKET_NAME=my-cloudvault-bucket-2026
-```
+Then edit the `.env` from example value to real value
 
 ### Environment Variables Detail
 

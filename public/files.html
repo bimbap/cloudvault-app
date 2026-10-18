@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudVault — File Explorer & Pre-signed URL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+
+  <!-- Sidebar Navigasi -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6">
+    <div>
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/30">
+          CV
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">CloudVault</h1>
+          <p class="text-xs text-slate-400">Stateless S3 Portal</p>
+        </div>
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="/index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>📊</span> Dashboard Overview
+        </a>
+        <a href="/upload.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>☁️</span> Upload & Metadata
+        </a>
+        <a href="/files.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600/20 text-indigo-400 font-medium border border-indigo-500/30">
+          <span>📁</span> File Explorer & Share
+        </a>
+        <a href="/system.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>🛡️</span> Audit & VPC Health
+        </a>
+      </nav>
+    </div>
+
+    <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs space-y-1">
+      <p class="text-slate-400 font-medium">Keamanan Akses File:</p>
+      <p class="text-amber-400 font-semibold">S3 Pre-signed URL</p>
+      <p class="text-slate-400">Bucket tetap 100% Private</p>
+    </div>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main class="flex-1 p-8 overflow-y-auto">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold">File Explorer & Pre-signed Link Generator</h2>
+        <p class="text-slate-400 text-sm">Kelola objek S3 dan buat tautan unduh sementara tanpa membuka akses publik bucket.</p>
+      </div>
+
+      <!-- Filter Prefix & Durasi Link -->
+      <div class="flex items-center gap-3">
+        <select id="filterCategory" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+          <option value="all">Semua Prefix Folder</option>
+          <option value="akademik">akademik/</option>
+          <option value="media">media/</option>
+          <option value="arsip">arsip/</option>
+          <option value="umum">umum/</option>
+        </select>
+
+        <select id="expireSelect" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+          <option value="300">Masa Berlaku Link: 5 Menit</option>
+          <option value="3600">Masa Berlaku Link: 1 Jam</option>
+          <option value="86400">Masa Berlaku Link: 24 Jam</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Box Hasil Pre-signed URL -->
+    <div id="presignBox" class="hidden mb-6 p-4 rounded-2xl bg-indigo-950/50 border border-indigo-700/60 text-sm">
+      <div class="flex items-center justify-between gap-4">
+        <div class="overflow-hidden">
+          <p class="font-semibold text-indigo-300" id="presignTitle">🔗 Pre-signed URL Berhasil Dibuat</p>
+          <input id="presignInput" type="text" readonly class="w-full mt-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 font-mono" />
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="copyPresignedUrl()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold">
+            Salin Link
+          </button>
+          <a id="presignOpenBtn" href="#" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">
+            Buka File ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel File -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 text-xs">
+              <th class="pb-3">Nama File</th>
+              <th class="pb-3">Prefix</th>
+              <th class="pb-3">Pengunggah</th>
+              <th class="pb-3">Deskripsi (Metadata)</th>
+              <th class="pb-3">Ukuran</th>
+              <th class="pb-3 text-right">Aksi Objek S3</th>
+            </tr>
+          </thead>
+          <tbody id="fileTableBody" class="divide-y divide-slate-800/60">
+            <tr>
+              <td colspan="6" class="py-8 text-center text-slate-500 text-xs">Memuat daftar objek dari S3...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let allFiles = [];
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function fetchFiles() {
+      try {
+        const res = await fetch('/api/files');
+        const data = await res.json();
+        allFiles = data.files || [];
+        renderTable();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTable() {
+      const filter = document.getElementById('filterCategory').value;
+      const tbody = document.getElementById('fileTableBody');
+
+      const filtered = filter === 'all'
+        ? allFiles
+        : allFiles.filter(f => f.category === filter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500 text-xs">Tidak ada file pada kategori ini.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(f => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-3.5 font-medium text-slate-200">${f.name}</td>
+          <td class="py-3.5"><span class="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 text-xs">${f.category}/</span></td>
+          <td class="py-3.5 text-slate-300">${f.uploader}</td>
+          <td class="py-3.5 text-slate-400 text-xs max-w-xs truncate">${f.description}</td>
+          <td class="py-3.5 text-slate-400 text-xs">${formatBytes(f.size)}</td>
+          <td class="py-3.5 text-right space-x-2">
+            <button
+              onclick="generateLink('${encodeURIComponent(f.key)}', '${f.name}')"
+              class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs font-medium transition"
+            >
+              🔗 Share Link
+            </button>
+            <button
+              onclick="deleteFile('${encodeURIComponent(f.key)}')"
+              class="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-xs font-medium transition"
+            >
+              🗑 Hapus
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function generateLink(encodedKey, fileName) {
+      const key = decodeURIComponent(encodedKey);
+      const expires = document.getElementById('expireSelect').value;
+
+      try {
+        const res = await fetch(`/api/presign?key=${encodeURIComponent(key)}&expires=${expires}`);
+        const data = await res.json();
+        if (data.success) {
+          const box = document.getElementById('presignBox');
+          box.classList.remove('hidden');
+          document.getElementById('presignTitle').textContent = `🔗 Pre-signed URL untuk "${fileName}" (Aktif ${data.expiresIn / 60} menit)`;
+          document.getElementById('presignInput').value = data.url;
+          document.getElementById('presignOpenBtn').href = data.url;
+        }
+      } catch (err) {
+        alert('Gagal membuat Pre-signed URL');
+      }
+    }
+
+    function copyPresignedUrl() {
+      const input = document.getElementById('presignInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      alert('Pre-signed URL berhasil disalin ke clipboard!');
+    }
+
+    async function deleteFile(encodedKey) {
+      const key = decodeURIComponent(encodedKey);
+      if (!confirm(`Hapus permanen objek "${key}" dari S3 Bucket?`)) return;
+
+      try {
+        const res = await fetch(`/api/files?key=${encodeURIComponent(key)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          fetchFiles();
+        }
+      } catch (err) {
+        alert('Gagal menghapus file.');
+      }
+    }
+
+    document.getElementById('filterCategory').addEventListener('change', renderTable);
+    fetchFiles();
+  </script>
+</body>
+</html>

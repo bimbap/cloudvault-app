@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudVault — Audit Log & VPC Health</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+
+  <!-- Sidebar Navigasi -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6">
+    <div>
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/30">
+          CV
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">CloudVault</h1>
+          <p class="text-xs text-slate-400">Stateless S3 Portal</p>
+        </div>
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="/index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>📊</span> Dashboard Overview
+        </a>
+        <a href="/upload.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>☁️</span> Upload & Metadata
+        </a>
+        <a href="/files.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>📁</span> File Explorer & Share
+        </a>
+        <a href="/system.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600/20 text-indigo-400 font-medium border border-indigo-500/30">
+          <span>🛡️</span> Audit & VPC Health
+        </a>
+      </nav>
+    </div>
+
+    <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs space-y-1">
+      <p class="text-slate-400 font-medium">Otentikasi AWS:</p>
+      <p class="text-emerald-400 font-semibold">IAM Instance Profile</p>
+      <p class="text-slate-400">Zero Hardcoded Credentials</p>
+    </div>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main class="flex-1 p-8 overflow-y-auto">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl font-bold">System Health & S3 Activity Audit</h2>
+        <p class="text-slate-400 text-sm">Diagnostik infrastruktur EC2, jalur rute VPC Endpoint, dan log aktivitas objek S3.</p>
+      </div>
+      <button onclick="loadSystemData()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold transition">
+        🔄 Refresh Diagnostik
+      </button>
+    </div>
+
+    <!-- Panel Status Infrastruktur EC2 & S3 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+        <h3 class="font-semibold text-base text-indigo-400">🖧 Status Koneksi S3 & VPC Endpoint</h3>
+        <div class="text-sm space-y-2 pt-2">
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">Status S3 Endpoint</span>
+            <span id="sysS3Status" class="font-semibold text-emerald-400">Memeriksa...</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">Target S3 Bucket</span>
+            <span id="sysBucket" class="font-mono text-xs text-slate-200">-</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">AWS Region</span>
+            <span id="sysRegion" class="font-mono text-xs text-slate-200">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Response Latency (GetBucketLocation)</span>
+            <span id="sysLatency" class="font-semibold text-slate-200">- ms</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+        <h3 class="font-semibold text-base text-emerald-400">🖥️ Metrik Compute EC2 (Stateless Node)</h3>
+        <div class="text-sm space-y-2 pt-2">
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">EC2 Internal Hostname</span>
+            <span id="ec2Host" class="font-mono text-xs text-slate-200">-</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">OS & Kernel</span>
+            <span id="ec2Os" class="text-xs text-slate-200">-</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-400">Penggunaan RAM EC2</span>
+            <span id="ec2Ram" class="font-semibold text-slate-200">- %</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">System Uptime</span>
+            <span id="ec2Uptime" class="text-slate-200">- Jam</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Audit Log dari S3 Metadata -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <h3 class="font-semibold text-base mb-1">📜 Riwayat Aktivitas Unggahan (Stateless Audit Trail)</h3>
+      <p class="text-xs text-slate-400 mb-6">Disusun otomatis dari timestamp LastModified dan S3 User-Defined Metadata tanpa database lokal.</p>
+
+      <div id="auditTimeline" class="space-y-4">
+        <p class="text-xs text-slate-500">Memuat riwayat aktivitas dari S3...</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadSystemData() {
+      try {
+        const sysRes = await fetch('/api/system');
+        const sys = await sysRes.json();
+
+        if (sys.s3Connected) {
+          document.getElementById('sysS3Status').textContent = 'ONLINE (Via VPC Gateway Endpoint)';
+          document.getElementById('sysS3Status').className = 'font-semibold text-emerald-400';
+          document.getElementById('sysBucket').textContent = sys.bucket;
+          document.getElementById('sysRegion').textContent = sys.region;
+          document.getElementById('sysLatency').textContent = `${sys.latencyMs} ms`;
+
+          document.getElementById('ec2Host').textContent = sys.ec2.hostname;
+          document.getElementById('ec2Os').textContent = sys.ec2.platform;
+          document.getElementById('ec2Ram').textContent = `${sys.ec2.memoryUsagePercent}%`;
+          document.getElementById('ec2Uptime').textContent = `${sys.ec2.uptimeHours} Jam`;
+        } else {
+          document.getElementById('sysS3Status').textContent = 'DISCONNECTED (' + (sys.error || 'Error') + ')';
+          document.getElementById('sysS3Status').className = 'font-semibold text-rose-400';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      try {
+        const fileRes = await fetch('/api/files');
+        const data = await fileRes.json();
+        const files = data.files || [];
+        const timeline = document.getElementById('auditTimeline');
+
+        if (files.length === 0) {
+          timeline.innerHTML = `<p class="text-xs text-slate-500">Belum ada aktivitas unggahan objek di S3.</p>`;
+          return;
+        }
+
+        timeline.innerHTML = files.slice(0, 10).map(f => `
+          <div class="flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div class="space-y-1">
+              <p class="text-sm">
+                <span class="font-semibold text-indigo-400">${f.uploader}</span>
+                mengunggah objek
+                <span class="font-medium text-slate-200">${f.name}</span>
+                ke prefix <code class="text-xs bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">${f.category}/</code>
+              </p>
+              <p class="text-xs text-slate-400">Catatan Metadata: "${f.description}" • Key: <span class="font-mono">${f.key}</span></p>
+            </div>
+            <span class="text-xs text-slate-400 shrink-0">${new Date(f.lastModified).toLocaleString('id-ID')}</span>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadSystemData();
+  </script>
+</body>
+</html>

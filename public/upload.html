@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudVault — Upload & S3 Custom Metadata</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0">
+    <div>
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/30 p-2 border border-indigo-400/20 shrink-0">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cloud Outline with Cutout Gap (Never touches or crosses the lock) -->
+            <path d="M9.5 16.5H5.5C3.57 16.5 2 14.93 2 13C2 11.18 3.38 9.68 5.2 9.38C5.9 7.1 7.8 5.5 10 5.5C11.6 5.5 13 6.4 13.7 7.8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Lock Shackle -->
+            <path d="M15 11V8.5C15 7.12 16.12 6 17.5 6C18.88 6 20 7.12 20 8.5V11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <!-- Lock Body (Clean White Outline) -->
+            <rect x="13" y="11" width="9" height="7.5" rx="1.8" stroke="white" stroke-width="1.8"/>
+            <!-- Keyhole Accent -->
+            <circle cx="17.5" cy="14" r="0.85" fill="white"/>
+            <path d="M17.5 14.8V16.2" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-tight flex items-center gap-1.5">
+            CloudVault
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse"></span>
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Stateless S3 Portal</p>
+        </div>
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="/index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>📊</span> Dashboard Overview
+        </a>
+        <a href="/upload.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600/20 text-indigo-400 font-medium border border-indigo-500/30">
+          <span>☁️</span> Upload & Metadata
+        </a>
+        <a href="/files.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>📁</span> File Explorer & Share
+        </a>
+        <a href="/system.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+          <span>🛡️</span> Audit & VPC Health
+        </a>
+      </nav>
+    </div>
+
+    <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs space-y-1">
+      <p class="text-slate-400 font-medium">Model Penyimpanan:</p>
+      <p class="text-indigo-400 font-semibold">Stateless In-Memory</p>
+      <p class="text-slate-400">RAM EC2 Buffer ➔ Amazon S3</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8 overflow-y-auto">
+    <div class="max-w-4xl mx-auto">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold">Upload File & Tag Custom S3 Metadata</h2>
+        <p class="text-slate-400 text-sm mt-1">
+          Unggah dokumen atau media ke Amazon S3 dengan metadata custom (Uploader & Deskripsi) tanpa menyimpan file di lokal disk EC2.
+        </p>
+      </div>
+
+      <!-- Alert Status Box -->
+      <div id="statusAlert" class="hidden mb-6 p-4 rounded-2xl border text-sm transition-all duration-200">
+        <div class="flex items-start gap-3">
+          <span id="alertIcon" class="text-xl"></span>
+          <div class="flex-1">
+            <h4 id="alertTitle" class="font-semibold text-sm"></h4>
+            <p id="alertMessage" class="text-xs mt-0.5 text-slate-300"></p>
+            <div id="alertAction" class="mt-3 hidden">
+              <a href="/files.html" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition">
+                <span>📁</span> Buka di File Explorer
+              </a>
+            </div>
+          </div>
+          <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-200 text-lg leading-none">&times;</button>
+        </div>
+      </div>
+
+      <!-- Upload Form Container -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-8">
+        <form id="uploadForm" onsubmit="handleUpload(event)" class="space-y-6">
+          
+          <!-- Drag and Drop Upload Zone -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Pilih Dokumen / File (Maksimal 20 MB)
+            </label>
+            <div
+              id="dropZone"
+              onclick="document.getElementById('fileInput').click()"
+              class="border-2 border-dashed border-slate-700 hover:border-indigo-500/80 bg-slate-950/60 hover:bg-indigo-950/20 rounded-2xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center group"
+            >
+              <input
+                type="file"
+                id="fileInput"
+                class="hidden"
+                onchange="handleFileSelect(this.files)"
+                required
+              />
+              <div class="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-indigo-600/20 transition mb-3">
+                ☁️
+              </div>
+              <p class="font-medium text-sm text-slate-200">
+                Tarik file ke sini atau <span class="text-indigo-400 underline">klik untuk telusuri</span>
+              </p>
+              <p class="text-xs text-slate-500 mt-1">Mendukung format gambar, PDF, dokumen arsip, dan zip.</p>
+
+              <!-- Selected File Preview Badge -->
+              <div id="filePreview" class="hidden mt-4 inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-200">
+                <span class="text-indigo-400 font-semibold">📄 File terpilih:</span>
+                <span id="fileName" class="font-mono text-slate-100"></span>
+                <span id="fileSize" class="text-slate-400 text-[11px]"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata Fields Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- S3 Prefix Folder / Category -->
+            <div>
+              <label for="categoryInput" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                Prefix / Kategori S3
+              </label>
+              <select
+                id="categoryInput"
+                name="category"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition"
+              >
+                <option value="umum">umum/ (Default Folder)</option>
+                <option value="akademik">akademik/ (Dokumen & Panduan)</option>
+                <option value="media">media/ (Foto, Aset & Grafis)</option>
+                <option value="arsip">arsip/ (Backup & Laporan)</option>
+                <option value="laporan">laporan/ (Berkas Audit)</option>
+              </select>
+              <p class="text-[11px] text-slate-500 mt-1">Objek S3 akan disimpan dengan key format: <code class="text-indigo-400">{prefix}/{timestamp}-{namafile}</code></p>
+            </div>
+
+            <!-- Uploader Name (Custom Metadata: x-amz-meta-uploader) -->
+            <div>
+              <label for="uploaderInput" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                Nama Pengunggah (Uploader)
+              </label>
+              <input
+                type="text"
+                id="uploaderInput"
+                name="uploader"
+                placeholder="Contoh: Admin atau Tristian LKS"
+                required
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition"
+              />
+              <p class="text-[11px] text-slate-500 mt-1">Disimpan sebagai S3 User-Defined Metadata: <code class="text-indigo-400">uploader</code></p>
+            </div>
+          </div>
+
+          <!-- Description (Custom Metadata: x-amz-meta-description) -->
+          <div>
+            <label for="descriptionInput" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Deskripsi Dokumen / Catatan Metadata
+            </label>
+            <textarea
+              id="descriptionInput"
+              name="description"
+              rows="3"
+              placeholder="Catatan mengenai berkas atau tujuan upload..."
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition"
+            ></textarea>
+              <p class="text-[11px] text-slate-500 mt-1">Disimpan sebagai S3 User-Defined Metadata: <code class="text-indigo-400">description</code></p>
+          </div>
+
+          <!-- Progress Bar (Hidden by default) -->
+          <div id="progressContainer" class="hidden space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Mengunggah file ke Amazon S3 via EC2 Buffer...</span>
+              <span id="progressText">0%</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+              <div id="progressBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="reset"
+              onclick="resetFileSelection()"
+              class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+            >
+              Reset
+            </button>
+            <button
+              type="submit"
+              id="submitBtn"
+              class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span id="btnIcon">🚀</span>
+              <span id="btnText">Upload ke Amazon S3</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let selectedFile = null;
+
+    // Drag and Drop listeners
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('border-indigo-500', 'bg-indigo-950/30');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-950/30');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        handleFileSelect(files);
+      }
+    });
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function handleFileSelect(files) {
+      if (files && files.length > 0) {
+        selectedFile = files[0];
+        document.getElementById('filePreview').classList.remove('hidden');
+        document.getElementById('fileName').textContent = selectedFile.name;
+        document.getElementById('fileSize').textContent = `(${formatBytes(selectedFile.size)})`;
+      }
+    }
+
+    function resetFileSelection() {
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('filePreview').classList.add('hidden');
+      hideAlert();
+    }
+
+    function showAlert(type, title, message, showExplorerLink = false) {
+      const alert = document.getElementById('statusAlert');
+      const icon = document.getElementById('alertIcon');
+      const alertTitle = document.getElementById('alertTitle');
+      const alertMsg = document.getElementById('alertMessage');
+      const action = document.getElementById('alertAction');
+
+      alert.classList.remove('hidden', 'bg-emerald-950/60', 'border-emerald-600/60', 'text-emerald-200', 'bg-rose-950/60', 'border-rose-600/60', 'text-rose-200');
+
+      if (type === 'success') {
+        alert.classList.add('bg-emerald-950/60', 'border-emerald-600/60', 'text-emerald-200');
+        icon.textContent = '✅';
+      } else {
+        alert.classList.add('bg-rose-950/60', 'border-rose-600/60', 'text-rose-200');
+        icon.textContent = '❌';
+      }
+
+      alertTitle.textContent = title;
+      alertMsg.textContent = message;
+
+      if (showExplorerLink) {
+        action.classList.remove('hidden');
+      } else {
+        action.classList.add('hidden');
+      }
+
+      alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideAlert() {
+      document.getElementById('statusAlert').classList.add('hidden');
+    }
+
+    async function handleUpload(e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showAlert('error', 'File Belum Dipilih', 'Silakan pilih atau tarik file terlebih dahulu.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (file.size > 20 * 1024 * 1024) {
+        showAlert('error', 'Ukuran File Terlalu Besar', 'Batas maksimal ukuran file adalah 20 MB.');
+        return;
+      }
+
+      const category = document.getElementById('categoryInput').value;
+      const uploader = document.getElementById('uploaderInput').value.trim() || 'Admin';
+      const description = document.getElementById('descriptionInput').value.trim() || '-';
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', category);
+      formData.append('uploader', uploader);
+      formData.append('description', description);
+
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnIcon = document.getElementById('btnIcon');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+
+      submitBtn.disabled = true;
+      btnText.textContent = 'Sedang Mengunggah...';
+      btnIcon.textContent = '⏳';
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '30%';
+      progressText.textContent = '30%';
+      hideAlert();
+
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload', true);
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 90);
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+          }
+        };
+
+        xhr.onload = function() {
+          progressBar.style.width = '100%';
+          progressText.textContent = '100%';
+
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (xhr.status === 200 && data.success) {
+              showAlert(
+                'success',
+                'Upload Berhasil Disimpan ke S3!',
+                `Object Key: ${data.key}. Metadata tersimpan permanen di Amazon S3.`,
+                true
+              );
+              resetFileSelection();
+            } else {
+              showAlert(
+                'error',
+                'Gagal Menyimpan ke S3',
+                data.message || 'Terjadi kesalahan saat upload.'
+              );
+            }
+          } catch (err) {
+            showAlert('error', 'Error Respon Server', 'Gagal memproses respon dari server backend.');
+          } finally {
+            submitBtn.disabled = false;
+            btnText.textContent = 'Upload ke Amazon S3';
+            btnIcon.textContent = '🚀';
+            setTimeout(() => {
+              progressContainer.classList.add('hidden');
+              progressBar.style.width = '0%';
+            }, 1000);
+          }
+        };
+
+        xhr.onerror = function() {
+          showAlert('error', 'Koneksi Gagal', 'Tidak dapat terhubung ke server backend API.');
+          submitBtn.disabled = false;
+          btnText.textContent = 'Upload ke Amazon S3';
+          btnIcon.textContent = '🚀';
+          progressContainer.classList.add('hidden');
+        };
+
+        xhr.send(formData);
+
+      } catch (err) {
+        showAlert('error', 'Kesalahan Klien', err.message);
+        submitBtn.disabled = false;
+        btnText.textContent = 'Upload ke Amazon S3';
+        btnIcon.textContent = '🚀';
+        progressContainer.classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -30,6 +30,7 @@ All authentication to AWS services is handled transparently via an **IAM Instanc
 │   ├── Cloudvault Architecture.png   # Architecture diagram visual preview
 ├── public/
 │   ├── index.html                    # Main dashboard: statistics, prefix breakdown & recent uploads
+│   ├── upload.html                   # File upload form with custom S3 metadata tags
 │   ├── files.html                    # File explorer & temporary pre-signed URL generator
 │   └── system.html                   # System status, latency & S3 metadata stateless audit trail
 ├── scripts/

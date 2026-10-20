@@ -6,21 +6,45 @@
   <title>CloudVault — Dashboard Storage S3</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row relative">
+
+  <!-- Mobile Top Bar (Visible only on small screens) -->
+  <header class="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center p-1.5 border border-indigo-400/20 shrink-0">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.5 16.5H5.5C3.57 16.5 2 14.93 2 13C2 11.18 3.38 9.68 5.2 9.38C5.9 7.1 7.8 5.5 10 5.5C11.6 5.5 13 6.4 13.7 7.8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 11V8.5C15 7.12 16.12 6 17.5 6C18.88 6 20 7.12 20 8.5V11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <rect x="13" y="11" width="9" height="7.5" rx="1.8" stroke="white" stroke-width="1.8"/>
+          <circle cx="17.5" cy="14" r="0.85" fill="white"/>
+          <path d="M17.5 14.8V16.2" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm leading-tight flex items-center gap-1">
+          CloudVault
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        </h1>
+        <p class="text-[10px] text-slate-400">Stateless S3 Portal</p>
+      </div>
+    </div>
+    <button onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-base border border-slate-700 transition" aria-label="Toggle Navigation">
+      <span id="mobileMenuIcon">☰</span>
+    </button>
+  </header>
+
+  <!-- Mobile Backdrop Overlay -->
+  <div id="mobileBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6">
+  <aside id="sidebarNav" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0 fixed inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
     <div>
       <div class="flex items-center gap-3 mb-8">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/30 p-2 border border-indigo-400/20 shrink-0">
           <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Cloud Outline with Cutout Gap (Never touches or crosses the lock) -->
             <path d="M9.5 16.5H5.5C3.57 16.5 2 14.93 2 13C2 11.18 3.38 9.68 5.2 9.38C5.9 7.1 7.8 5.5 10 5.5C11.6 5.5 13 6.4 13.7 7.8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- Lock Shackle -->
             <path d="M15 11V8.5C15 7.12 16.12 6 17.5 6C18.88 6 20 7.12 20 8.5V11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-            <!-- Lock Body (Clean White Outline) -->
             <rect x="13" y="11" width="9" height="7.5" rx="1.8" stroke="white" stroke-width="1.8"/>
-            <!-- Keyhole Accent -->
             <circle cx="17.5" cy="14" r="0.85" fill="white"/>
             <path d="M17.5 14.8V16.2" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
           </svg>
@@ -53,77 +77,85 @@
     <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs space-y-1">
       <p class="text-slate-400 font-medium">Arsitektur Aktif:</p>
       <p class="text-emerald-400 font-semibold">EC2 ➔ VPC Endpoint ➔ S3</p>
-      <p class="text-slate-400" id="sidebarBucket">Memuat bucket...</p>
+      <p class="text-slate-400 truncate" id="sidebarBucket">Memuat bucket...</p>
     </div>
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 p-8 overflow-y-auto">
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+  <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h2 class="text-2xl font-bold">Dashboard & Storage Overview</h2>
-        <p class="text-slate-400 text-sm">Monitoring objek dan metrik kapasitas langsung dari Amazon S3 API (Tanpa Database).</p>
+        <h2 class="text-xl sm:text-2xl font-bold">Dashboard & Storage Overview</h2>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Monitoring objek dan metrik kapasitas langsung dari Amazon S3 API (Tanpa Database).</p>
       </div>
-      <div id="endpointBadge" class="px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium flex items-center gap-2">
+      <div id="endpointBadge" class="self-start sm:self-auto px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
         Mengecek jalur S3 VPC Endpoint...
       </div>
     </div>
 
-    <!-- 4 Statistics Card -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+    <!-- 4 Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-lg">
         <p class="text-xs text-slate-400 uppercase tracking-wider">Total Objek di S3</p>
-        <p class="text-3xl font-bold mt-2" id="statTotalFiles">0</p>
+        <p class="text-2xl sm:text-3xl font-bold mt-2" id="statTotalFiles">
+          <span class="inline-block h-7 w-16 bg-slate-800 rounded animate-pulse"></span>
+        </p>
         <p class="text-xs text-indigo-400 mt-2">Diambil via ListObjectsV2</p>
       </div>
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-lg">
         <p class="text-xs text-slate-400 uppercase tracking-wider">Total Ukuran Storage</p>
-        <p class="text-3xl font-bold mt-2" id="statTotalSize">0 KB</p>
-        <p class="text-xs text-emerald-400 mt-2">Beban Disk EC2: 0 Bytes (Stateless)</p>
+        <p class="text-2xl sm:text-3xl font-bold mt-2" id="statTotalSize">
+          <span class="inline-block h-7 w-20 bg-slate-800 rounded animate-pulse"></span>
+        </p>
+        <p class="text-xs text-emerald-400 mt-2">Beban Disk EC2: 0 B (Stateless)</p>
       </div>
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-lg">
         <p class="text-xs text-slate-400 uppercase tracking-wider">Folder Prefix Aktif</p>
-        <p class="text-3xl font-bold mt-2" id="statCategories">0</p>
+        <p class="text-2xl sm:text-3xl font-bold mt-2" id="statCategories">
+          <span class="inline-block h-7 w-12 bg-slate-800 rounded animate-pulse"></span>
+        </p>
         <p class="text-xs text-slate-400 mt-2">Kategori S3 Prefix</p>
       </div>
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-lg">
         <p class="text-xs text-slate-400 uppercase tracking-wider">Latensi S3 Endpoint</p>
-        <p class="text-3xl font-bold mt-2" id="statLatency">- ms</p>
-        <p class="text-xs text-slate-400 mt-2" id="statRegion">Region: -</p>
+        <p class="text-2xl sm:text-3xl font-bold mt-2" id="statLatency">
+          <span class="inline-block h-7 w-16 bg-slate-800 rounded animate-pulse"></span>
+        </p>
+        <p class="text-xs text-slate-400 mt-2 truncate" id="statRegion">Region: -</p>
       </div>
     </div>
 
     <!-- Prefix Distribution & Newest Files -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Prefix Distribution -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h3 class="font-semibold text-base mb-1">Komposisi S3 Prefix (Folder)</h3>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+        <h3 class="font-semibold text-sm sm:text-base mb-1">Komposisi S3 Prefix (Folder)</h3>
         <p class="text-xs text-slate-400 mb-5">Distribusi file berdasarkan prefix kategori di S3.</p>
-        <div id="categoryBreakdown" class="space-y-4 text-sm">
+        <div id="categoryBreakdown" class="space-y-4 text-xs sm:text-sm">
           <p class="text-slate-500 text-xs">Memuat data kategori...</p>
         </div>
       </div>
 
-      <!-- 5 Newest Files -->
-      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <!-- 5 Newest Files Table -->
+      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="font-semibold text-base">5 Objek Terakhir yang Diunggah</h3>
+            <h3 class="font-semibold text-sm sm:text-base">5 Objek Terakhir yang Diunggah</h3>
             <p class="text-xs text-slate-400">Menampilkan atribut S3 Object Key & User-Defined Metadata.</p>
           </div>
-          <a href="/files.html" class="text-xs text-indigo-400 hover:underline">Lihat Semua ➔</a>
+          <a href="/files.html" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Lihat Semua ➔</a>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+        <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table class="w-full text-left text-xs sm:text-sm min-w-[550px]">
             <thead>
               <tr class="border-b border-slate-800 text-slate-400 text-xs">
                 <th class="pb-3">Nama File</th>
                 <th class="pb-3">Prefix</th>
-                <th class="pb-3">Pengunggah (Metadata)</th>
+                <th class="pb-3">Pengunggah</th>
                 <th class="pb-3">Ukuran</th>
-                <th class="pb-3">Waktu Upload</th>
+                <th class="pb-3 text-right">Waktu Upload</th>
               </tr>
             </thead>
             <tbody id="recentFilesTable" class="divide-y divide-slate-800/60">
@@ -138,8 +170,25 @@
   </main>
 
   <script>
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebarNav');
+      const backdrop = document.getElementById('mobileBackdrop');
+      const icon = document.getElementById('mobileMenuIcon');
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        if (icon) icon.textContent = '✕';
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+        if (icon) icon.textContent = '☰';
+      }
+    }
+
     function formatBytes(bytes) {
-      if (bytes === 0) return '0 B';
+      if (!bytes || bytes === 0) return '0 B';
       const k = 1024;
       const sizes = ['B', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -154,13 +203,15 @@
         const badge = document.getElementById('endpointBadge');
 
         if (sys.s3Connected) {
-          badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> S3 VPC Endpoint: Connected`;
-          badge.className = 'px-4 py-2 rounded-full bg-emerald-950/60 border border-emerald-700/50 text-emerald-300 text-xs font-medium flex items-center gap-2';
+          badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span> S3 VPC Endpoint: Connected`;
+          badge.className = 'self-start sm:self-auto px-4 py-2 rounded-full bg-emerald-950/60 border border-emerald-700/50 text-emerald-300 text-xs font-medium flex items-center gap-2 shadow-sm';
           document.getElementById('statLatency').textContent = `${sys.latencyMs} ms`;
           document.getElementById('statRegion').textContent = `Region: ${sys.region}`;
           document.getElementById('sidebarBucket').textContent = `Bucket: ${sys.bucket}`;
         } else {
           badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> S3 Disconnected`;
+          badge.className = 'self-start sm:self-auto px-4 py-2 rounded-full bg-rose-950/60 border border-rose-700/50 text-rose-300 text-xs font-medium flex items-center gap-2 shadow-sm';
+          document.getElementById('statLatency').textContent = `-`;
         }
       } catch (e) {
         console.error(e);
@@ -185,18 +236,18 @@
         // Render distribusi prefix
         const catContainer = document.getElementById('categoryBreakdown');
         if (files.length === 0) {
-          catContainer.innerHTML = `<p class="text-slate-500 text-xs">Belum ada file di S3 Bucket. Silakan unggah file di menu Upload.</p>`;
+          catContainer.innerHTML = `<p class="text-slate-500 text-xs py-4 text-center">Belum ada file di S3 Bucket. Silakan unggah file di menu Upload.</p>`;
         } else {
           catContainer.innerHTML = Object.entries(categories).map(([cat, count]) => {
             const pct = Math.round((count / files.length) * 100);
             return `
               <div>
-                <div class="flex justify-between text-xs mb-1">
+                <div class="flex justify-between text-xs mb-1.5">
                   <span class="uppercase font-semibold text-slate-300">${cat}/</span>
-                  <span class="text-slate-400">${count} file (${pct}%)</span>
+                  <span class="text-slate-400 font-mono">${count} file (${pct}%)</span>
                 </div>
                 <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-indigo-500 rounded-full" style="width: ${pct}%"></div>
+                  <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
                 </div>
               </div>
             `;
@@ -206,15 +257,17 @@
         // Render 5 new file
         const tbody = document.getElementById('recentFilesTable');
         if (files.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500 text-xs">Bucket masih kosong.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 text-xs">Bucket masih kosong.</td></tr>`;
         } else {
           tbody.innerHTML = files.slice(0, 5).map(f => `
-            <tr class="hover:bg-slate-800/40">
-              <td class="py-3 font-medium text-slate-200">${f.name}</td>
-              <td class="py-3"><span class="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 text-xs">${f.category}/</span></td>
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3 font-medium text-slate-200">
+                <div class="truncate max-w-[180px] sm:max-w-xs" title="${f.name}">${f.name}</div>
+              </td>
+              <td class="py-3"><span class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 text-xs font-mono">${f.category}/</span></td>
               <td class="py-3 text-slate-300">${f.uploader}</td>
-              <td class="py-3 text-slate-400 text-xs">${formatBytes(f.size)}</td>
-              <td class="py-3 text-slate-400 text-xs">${new Date(f.lastModified).toLocaleString('id-ID')}</td>
+              <td class="py-3 text-slate-400 text-xs font-mono">${formatBytes(f.size)}</td>
+              <td class="py-3 text-right text-slate-400 text-xs font-mono">${new Date(f.lastModified).toLocaleDateString('id-ID')}</td>
             </tr>
           `).join('');
         }

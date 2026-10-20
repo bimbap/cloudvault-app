@@ -6,24 +6,38 @@
   <title>CloudVault — Upload & S3 Custom Metadata</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex relative">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row relative">
 
-  <!-- Floating Toast Notification -->
-  <div id="toastNotification" class="fixed top-6 right-6 z-50 transform translate-x-[120%] transition-transform duration-300 ease-out max-w-sm w-full pointer-events-none">
-    <div class="pointer-events-auto bg-slate-900/95 backdrop-blur-md border border-emerald-500/50 shadow-2xl shadow-emerald-500/20 rounded-2xl p-4 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0 animate-bounce">
-        ✅
+  <!-- Mobile Top Bar (Visible only on small screens) -->
+  <header class="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center p-1.5 border border-indigo-400/20 shrink-0">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.5 16.5H5.5C3.57 16.5 2 14.93 2 13C2 11.18 3.38 9.68 5.2 9.38C5.9 7.1 7.8 5.5 10 5.5C11.6 5.5 13 6.4 13.7 7.8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 11V8.5C15 7.12 16.12 6 17.5 6C18.88 6 20 7.12 20 8.5V11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <rect x="13" y="11" width="9" height="7.5" rx="1.8" stroke="white" stroke-width="1.8"/>
+          <circle cx="17.5" cy="14" r="0.85" fill="white"/>
+          <path d="M17.5 14.8V16.2" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="flex-1 min-w-0">
-        <h5 class="text-sm font-semibold text-emerald-300">Upload Berhasil!</h5>
-        <p id="toastMessage" class="text-xs text-slate-300 truncate mt-0.5">Berkas dan metadata berhasil disimpan di S3.</p>
+      <div>
+        <h1 class="font-bold text-sm leading-tight flex items-center gap-1">
+          CloudVault
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        </h1>
+        <p class="text-[10px] text-slate-400">Stateless S3 Portal</p>
       </div>
-      <button onclick="hideToast()" class="text-slate-400 hover:text-slate-200 text-lg leading-none shrink-0">&times;</button>
     </div>
-  </div>
+    <button onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-base border border-slate-700 transition" aria-label="Toggle Navigation">
+      <span id="mobileMenuIcon">☰</span>
+    </button>
+  </header>
+
+  <!-- Mobile Backdrop Overlay -->
+  <div id="mobileBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0">
+  <aside id="sidebarNav" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0 fixed inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
     <div>
       <div class="flex items-center gap-3 mb-8">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/30 p-2 border border-indigo-400/20 shrink-0">
@@ -71,12 +85,26 @@
     </div>
   </aside>
 
+  <!-- Floating Toast Notification -->
+  <div id="toastNotification" class="fixed top-6 right-6 z-50 transform translate-x-[120%] transition-transform duration-300 ease-out max-w-sm w-full pointer-events-none">
+    <div class="pointer-events-auto bg-slate-900/95 backdrop-blur-md border border-emerald-500/50 shadow-2xl shadow-emerald-500/20 rounded-2xl p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0 animate-bounce">
+        ✅
+      </div>
+      <div class="flex-1 min-w-0">
+        <h5 class="text-sm font-semibold text-emerald-300">Upload Berhasil!</h5>
+        <p id="toastMessage" class="text-xs text-slate-300 truncate mt-0.5">Berkas dan metadata berhasil disimpan di S3.</p>
+      </div>
+      <button onclick="hideToast()" class="text-slate-400 hover:text-slate-200 text-lg leading-none shrink-0">&times;</button>
+    </div>
+  </div>
+
   <!-- Main Content -->
-  <main class="flex-1 p-8 overflow-y-auto">
+  <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
     <div class="max-w-4xl mx-auto">
       <div class="mb-8">
-        <h2 class="text-2xl font-bold">Upload File & Tag Custom S3 Metadata</h2>
-        <p class="text-slate-400 text-sm mt-1">
+        <h2 class="text-xl sm:text-2xl font-bold">Upload File & Tag Custom S3 Metadata</h2>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
           Unggah dokumen atau media ke Amazon S3 dengan metadata custom (Uploader & Deskripsi) tanpa menyimpan file di lokal disk EC2.
         </p>
       </div>
@@ -225,6 +253,23 @@
   </main>
 
   <script>
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebarNav');
+      const backdrop = document.getElementById('mobileBackdrop');
+      const icon = document.getElementById('mobileMenuIcon');
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        if (icon) icon.textContent = '✕';
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+        if (icon) icon.textContent = '☰';
+      }
+    }
+
     let selectedFile = null;
 
     // Drag and Drop listeners

@@ -6,7 +6,21 @@
   <title>CloudVault — Upload & S3 Custom Metadata</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex relative">
+
+  <!-- Floating Toast Notification -->
+  <div id="toastNotification" class="fixed top-6 right-6 z-50 transform translate-x-[120%] transition-transform duration-300 ease-out max-w-sm w-full pointer-events-none">
+    <div class="pointer-events-auto bg-slate-900/95 backdrop-blur-md border border-emerald-500/50 shadow-2xl shadow-emerald-500/20 rounded-2xl p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0 animate-bounce">
+        ✅
+      </div>
+      <div class="flex-1 min-w-0">
+        <h5 class="text-sm font-semibold text-emerald-300">Upload Berhasil!</h5>
+        <p id="toastMessage" class="text-xs text-slate-300 truncate mt-0.5">Berkas dan metadata berhasil disimpan di S3.</p>
+      </div>
+      <button onclick="hideToast()" class="text-slate-400 hover:text-slate-200 text-lg leading-none shrink-0">&times;</button>
+    </div>
+  </div>
 
   <!-- Sidebar Navigation -->
   <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-6 shrink-0">
@@ -68,19 +82,19 @@
       </div>
 
       <!-- Alert Status Box -->
-      <div id="statusAlert" class="hidden mb-6 p-4 rounded-2xl border text-sm transition-all duration-200">
-        <div class="flex items-start gap-3">
-          <span id="alertIcon" class="text-xl"></span>
-          <div class="flex-1">
-            <h4 id="alertTitle" class="font-semibold text-sm"></h4>
-            <p id="alertMessage" class="text-xs mt-0.5 text-slate-300"></p>
-            <div id="alertAction" class="mt-3 hidden">
-              <a href="/files.html" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition">
-                <span>📁</span> Buka di File Explorer
+      <div id="statusAlert" class="hidden mb-6 p-5 rounded-2xl border text-sm transition-all duration-300 shadow-2xl">
+        <div class="flex items-start gap-4">
+          <span id="alertIcon" class="text-3xl shrink-0"></span>
+          <div class="flex-1 min-w-0">
+            <h4 id="alertTitle" class="font-bold text-base text-white"></h4>
+            <p id="alertMessage" class="text-xs mt-1 text-slate-300 leading-relaxed font-mono break-all"></p>
+            <div id="alertAction" class="mt-4 hidden">
+              <a href="/files.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/30 transition">
+                <span>📁</span> Buka di File Explorer & Generate Link ➔
               </a>
             </div>
           </div>
-          <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-200 text-lg leading-none">&times;</button>
+          <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-200 text-xl leading-none">&times;</button>
         </div>
       </div>
 
@@ -257,11 +271,37 @@
       }
     }
 
-    function resetFileSelection() {
+    function clearFormFields() {
       selectedFile = null;
       document.getElementById('fileInput').value = '';
       document.getElementById('filePreview').classList.add('hidden');
+      document.getElementById('uploaderInput').value = '';
+      document.getElementById('descriptionInput').value = '';
+      document.getElementById('categoryInput').value = 'umum';
+    }
+
+    function resetFileSelection() {
+      clearFormFields();
       hideAlert();
+    }
+
+    let toastTimeout = null;
+    function showToast(title, msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.classList.remove('translate-x-[120%]');
+      toast.classList.add('translate-x-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        hideToast();
+      }, 5000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toastNotification');
+      toast.classList.remove('translate-x-0');
+      toast.classList.add('translate-x-[120%]');
     }
 
     function showAlert(type, title, message, showExplorerLink = false) {
@@ -271,13 +311,13 @@
       const alertMsg = document.getElementById('alertMessage');
       const action = document.getElementById('alertAction');
 
-      alert.classList.remove('hidden', 'bg-emerald-950/60', 'border-emerald-600/60', 'text-emerald-200', 'bg-rose-950/60', 'border-rose-600/60', 'text-rose-200');
+      alert.classList.remove('hidden', 'bg-emerald-950/70', 'border-emerald-500/70', 'text-emerald-200', 'bg-rose-950/70', 'border-rose-500/70', 'text-rose-200');
 
       if (type === 'success') {
-        alert.classList.add('bg-emerald-950/60', 'border-emerald-600/60', 'text-emerald-200');
-        icon.textContent = '✅';
+        alert.classList.add('bg-emerald-950/70', 'border-emerald-500/70', 'text-emerald-200');
+        icon.textContent = '🎉';
       } else {
-        alert.classList.add('bg-rose-950/60', 'border-rose-600/60', 'text-rose-200');
+        alert.classList.add('bg-rose-950/70', 'border-rose-500/70', 'text-rose-200');
         icon.textContent = '❌';
       }
 
@@ -356,13 +396,20 @@
           try {
             const data = JSON.parse(xhr.responseText);
             if (xhr.status === 200 && data.success) {
+              const uploadedFileName = file.name;
+              // 1. Kosongkan semua teks dan file input agar bersih
+              clearFormFields();
+
+              // 2. Tampilkan Alert Banner hijau yang jelas & tombol buka Explorer
               showAlert(
                 'success',
-                'Upload Berhasil Disimpan ke S3!',
-                `Object Key: ${data.key}. Metadata tersimpan permanen di Amazon S3.`,
+                'Upload Berhasil Disimpan ke Amazon S3!',
+                `Object Key: ${data.key}. Metadata tersimpan permanen di cloud storage.`,
                 true
               );
-              resetFileSelection();
+
+              // 3. Tampilkan Floating Toast popup di kanan atas
+              showToast('Upload Berhasil!', `Berkas "${uploadedFileName}" berhasil disimpan di S3!`);
             } else {
               showAlert(
                 'error',

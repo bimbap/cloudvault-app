@@ -13,7 +13,3 @@ apt-get install -y nodejs
 
 # 3. Install PM2 globally
 npm install -g pm2
-
-# 4. Create application folder and grant access permission to user 'ubuntu' for FileZilla
-mkdir -p /home/ubuntu/cloudvault-app/public
-chown -R ubuntu:ubuntu /home/ubuntu/cloudvault-app
